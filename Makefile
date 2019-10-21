@@ -1,5 +1,12 @@
 GRAPHBLAS=deps/GraphBLAS/build/libgraphblas.a
 
+SOURCEDIR=$(shell pwd -P)
+CC_SOURCES = $(wildcard $(SOURCEDIR)/*.c)
+CC_SOURCES += $(wildcard $(SOURCEDIR)/cfpq_algorithms/*.c)
+CC_SOURCES += $(wildcard $(SOURCEDIR)/grammar/*.c)
+CC_SOURCES += $(wildcard $(SOURCEDIR)/graph/*.c)
+CC_SOURCES += $(wildcard $(SOURCEDIR)/utils/*.c)
+
 run_all: all
 	./main
 
@@ -11,10 +18,3 @@ ifeq (,$(wildcard $(GRAPHBLAS)))
 	@$(MAKE) -C deps/GraphBLAS CMAKE_OPTIONS="-DCMAKE_C_COMPILER='clang' -DCMAKE_CXX_COMPILER='clang++'" static_only
 endif
 .PHONY: $(GRAPHBLAS)
-
-
-SOURCEDIR=$(shell pwd -P)
-CC_SOURCES = $(wildcard $(SOURCEDIR)/*.c)
-CC_SOURCES += $(wildcard $(SOURCEDIR)/cfpq_algorithms/*.c)
-CC_SOURCES += $(wildcard $(SOURCEDIR)/grammar/*.c)
-CC_SOURCES += $(wildcard $(SOURCEDIR)/graph/*.c)
