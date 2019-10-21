@@ -1,7 +1,7 @@
 #include <assert.h>
 
 #include "algorithms.h"
-#include "../grammar/item_mapper.h"
+#include "../utils/item_mapper.h"
 
 int cfpq_cpu_1(const Grammar *grammar, CfpqResponse *response,
                const GrB_Matrix *relations, const char relations_names[MAX_GRAPH_RELATION_TYPES][MAX_ITEM_NAME_LEN],

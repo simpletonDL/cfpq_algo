@@ -4,7 +4,7 @@
 
 #include "../deps/GraphBLAS/Include/GraphBLAS.h"
 #include "../grammar/grammar.h"
-#include "../grammar/item_mapper.h"
+#include "../utils/item_mapper.h"
 
 #define MAX_GRAPH_RELATION_TYPES 50000
 #define MAX_GRAPH_SIZE 100000

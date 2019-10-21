@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "conf.h"
+#include "../grammar/conf.h"
 
 #define ITEM_NOT_EXIST 0
 #define ITEM_EXIST 1

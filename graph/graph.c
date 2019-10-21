@@ -1,8 +1,8 @@
 #include <assert.h>
 #include "graph.h"
 
-#include "../grammar/helpers.h"
-#include "../grammar/item_mapper.h"
+#include "../utils/helpers.h"
+#include "../utils/item_mapper.h"
 
 void GraphRepr_Init(GraphRepr* g) {
     ItemMapper_Init((ItemMapper*) &g->nodes);

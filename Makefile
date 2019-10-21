@@ -7,10 +7,7 @@ CC_SOURCES += $(wildcard $(SOURCEDIR)/grammar/*.c)
 CC_SOURCES += $(wildcard $(SOURCEDIR)/graph/*.c)
 CC_SOURCES += $(wildcard $(SOURCEDIR)/utils/*.c)
 
-run_all: all
-	./main
-
-all: $(GRAPHBLAS)
+all: $(GRAPHBLAS) $(CC_SOURCES)
 	clang -o main ${CC_SOURCES} -fopenmp $(GRAPHBLAS) -lm
 
 $(GRAPHBLAS):

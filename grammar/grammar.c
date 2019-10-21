@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include "grammar.h"
-#include "item_mapper.h"
-#include "helpers.h"
+#include "../utils/item_mapper.h"
+#include "../utils/helpers.h"
 
 void Grammar_Init(Grammar *gr) {
     gr->complex_rules_count = 0;
