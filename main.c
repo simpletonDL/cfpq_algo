@@ -33,7 +33,7 @@ int main() {
 
     double timer[2];
     simple_tic(timer);
-    cfpq_cpu_2(&grammar, &response, g.relations, g.edges.items, g.edges.count, MAX_GRAPH_SIZE);
+    cfpq_cpu_3(&grammar, &response, g.relations, g.edges.items, g.edges.count, MAX_GRAPH_SIZE);
     double time_query = simple_toc(timer);
 
     // Output results
