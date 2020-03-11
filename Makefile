@@ -11,10 +11,10 @@ run: all
 	./main
 
 all: $(GRAPHBLAS) $(CC_SOURCES)
-	clang -o main ${CC_SOURCES} -fopenmp $(GRAPHBLAS) -lm
+	gcc -o main ${CC_SOURCES} -fopenmp $(GRAPHBLAS) -lm
 
 $(GRAPHBLAS):
 ifeq (,$(wildcard $(GRAPHBLAS)))
-	@$(MAKE) -C deps/GraphBLAS CMAKE_OPTIONS="-DCMAKE_C_COMPILER='clang' -DCMAKE_CXX_COMPILER='clang++'" static_only
+	@$(MAKE) -C deps/GraphBLAS CMAKE_OPTIONS="-DCMAKE_C_COMPILER='gcc' -DCMAKE_CXX_COMPILER='g++'" static_only
 endif
 .PHONY: $(GRAPHBLAS)

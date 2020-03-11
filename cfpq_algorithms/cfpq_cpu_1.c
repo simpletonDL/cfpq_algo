@@ -6,7 +6,6 @@
 int cfpq_cpu_1(const Grammar *grammar, CfpqResponse *response,
                const GrB_Matrix *relations, const char relations_names[MAX_GRAPH_RELATION_TYPES][MAX_ITEM_NAME_LEN],
                size_t relations_count, size_t graph_size) {
-    printf("1\n");
     // Create matrices
     uint64_t nonterm_count = grammar->nontermMapper.count;
     GrB_Matrix matrices[nonterm_count];

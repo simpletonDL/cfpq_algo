@@ -6,7 +6,7 @@
 #include "../grammar/grammar.h"
 #include "../utils/item_mapper.h"
 
-#define MAX_GRAPH_RELATION_TYPES 50000
+#define MAX_GRAPH_RELATION_TYPES 100
 #define MAX_GRAPH_SIZE 100000
 
 typedef struct {

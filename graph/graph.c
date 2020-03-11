@@ -33,7 +33,6 @@ void GraphRepr_Load(GraphRepr *g, FILE *f) {
     ItemMapper_Init(&nodes);
     ItemMapper_Init(&edges);
 
-    int i = 0;
     while (getline(&line_buf, &buf_size, f) != -1) {
         str_strip(line_buf);
 
