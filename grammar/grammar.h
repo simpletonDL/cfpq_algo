@@ -7,13 +7,11 @@
 #define GRAMMAR_LOAD_SUCCESS 1
 
 typedef struct {
-    MapperIndex count;
-    char items[MAX_NONTERM_COUNT][MAX_ITEM_NAME_LEN];
+    const char **arr;
 } NontermMapper;
 
 typedef struct {
-    MapperIndex count;
-    char items[MAX_GRAMMAR_SIZE][MAX_ITEM_NAME_LEN];
+	const char **arr;
 } TokenMapper;
 
 typedef struct {
@@ -28,12 +26,15 @@ typedef struct {
 } SimpleRule;
 
 typedef struct {
-    ComplexRule complex_rules[MAX_GRAMMAR_SIZE];
+	// S -> A B
+	ComplexRule complex_rules[MAX_GRAMMAR_SIZE]; // [{0, 1, 2}, {3, 4, 5}]
     int complex_rules_count;
 
-    SimpleRule simple_rules[MAX_GRAMMAR_SIZE];
+    // A -> a
+    SimpleRule simple_rules[MAX_GRAMMAR_SIZE]; // [{0, 1}, {2, 3}]
     int simple_rules_count;
 
+    //
     NontermMapper nontermMapper;
     TokenMapper tokenMapper;
 } Grammar;

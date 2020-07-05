@@ -1,36 +1,44 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "item_mapper.h"
 #include "string.h"
+#include "arr.h"
 
 MapperIndex ItemMapper_GetPlaceIndex(ItemMapper *dict, const char *token) {
-    for (MapperIndex i = 0; i < dict->count; i++) {
-        if (strcmp(dict->items[i], token) ==  0) {
-            return i;
-        }
+    for (MapperIndex i = 0; i < array_len(dict->arr); i++) {
+        if (strcmp(dict->arr[i], token) ==  0) {
+//			printf("%s == %s -> %d\n", dict->arr[i], token, i);
+			return i;
+        } else {
+//			printf("%s != %s\n", dict->arr[i], token);
+		}
     }
-    return dict->count;
+    return array_len(dict->arr);
 }
 
 void ItemMapper_Init(ItemMapper *dict) {
-    dict->count = 0;
+    dict->arr = array_new(char*, 10);
 }
 
-MapperIndex ItemMapper_Insert(ItemMapper *dict, const char* token) {
-    MapperIndex i = ItemMapper_GetPlaceIndex(dict, token);
-    if (i < dict->count) {
+MapperIndex ItemMapper_Insert(ItemMapper *dict, const char *token) {
+	MapperIndex i = ItemMapper_GetPlaceIndex(dict, token);
+
+	if (i < array_len(dict->arr)) {
         return i;
     } else {
-        strcpy(dict->items[dict->count], token);
-        return dict->count++;
+		char* new_token = malloc(sizeof(char) * strlen(token));
+		strcpy(new_token, token);
+		dict->arr = array_append(dict->arr, new_token);
+        return array_len(dict->arr)-1;
     }
 }
 
-int ItemMapper_Find(ItemMapper *dict, const char* token) {
-    return ItemMapper_GetPlaceIndex(dict, token) == dict->count ? ITEM_NOT_EXIST : ITEM_EXIST;
+int ItemMapper_Find(ItemMapper *dict, const char *token) {
+    return ItemMapper_GetPlaceIndex(dict, token) == array_len(dict->arr) ? ITEM_NOT_EXIST : ITEM_EXIST;
 }
 
-char* ItemMapper_Map(ItemMapper *dict, MapperIndex mapperIdex) {
-    assert(mapperIdex < dict->count);
-    return dict->items[mapperIdex];
+const char * ItemMapper_Map(ItemMapper *dict, MapperIndex mapperIdex) {
+    assert(mapperIdex < array_len(dict->arr));
+    return dict->arr[mapperIdex];
 }

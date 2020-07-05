@@ -1,11 +1,12 @@
 GRAPHBLAS=deps/GraphBLAS/build/libgraphblas.a
 
 SOURCEDIR=$(shell pwd -P)
-CC_SOURCES = $(wildcard $(SOURCEDIR)/*.c)
+CC_SOURCES = $(wildcard $(SOURCEDIR)/main.c)
 CC_SOURCES += $(wildcard $(SOURCEDIR)/cfpq_algorithms/*.c)
 CC_SOURCES += $(wildcard $(SOURCEDIR)/grammar/*.c)
 CC_SOURCES += $(wildcard $(SOURCEDIR)/graph/*.c)
 CC_SOURCES += $(wildcard $(SOURCEDIR)/utils/*.c)
+CC_SOURCES += $(wildcard $(SOURCEDIR)/benchmarks/*.c)
 
 run: all
 	./main

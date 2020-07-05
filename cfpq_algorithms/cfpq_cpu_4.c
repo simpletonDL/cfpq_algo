@@ -1,57 +1,53 @@
-#include <assert.h>
-
+#include "index.h"
 #include "algorithms.h"
-#include "../utils/item_mapper.h"
+#include "../utils/helpers.h"
 #include "../utils/arr.h"
 
-int cfpq_cpu_1(const Grammar *grammar, CfpqResponse *response,
-			   const GrB_Matrix *relations, // Матрицы для терминалов
-               const char **relations_names, // имена
+GrB_Matrix * cfpq_cpu_4(const Grammar *grammar, CfpqResponse *response,
+               const GrB_Matrix *relations, const char relations_names[MAX_GRAPH_RELATION_TYPES][MAX_ITEM_NAME_LEN],
                size_t relations_count, size_t graph_size) {
-    // Create matrices для НЕТЕРМИНАЛОВ
+    // create index type and operations
+    GrB_Type IndexType;
+    check_info(GrB_Type_new(&IndexType, sizeof(Index)));
+
+    GrB_BinaryOp IndexType_Add, IndexType_Mul;
+    check_info(GrB_BinaryOp_new(&IndexType_Add, Index_Add, IndexType, IndexType, IndexType));
+    check_info(GrB_BinaryOp_new(&IndexType_Mul, Index_Mul, IndexType, IndexType, IndexType));
+
+    GrB_Monoid IndexType_Monoid;
+    GrB_Info info = GrB_Monoid_new(&IndexType_Monoid, IndexType_Add, (void *) &Index_Identity);
+    check_info(info);
+
+    GrB_Semiring IndexType_Semiring;
+    check_info(GrB_Semiring_new(&IndexType_Semiring, IndexType_Monoid, IndexType_Mul));
+
+
+    // Create matrices
     uint64_t nonterm_count = array_len(grammar->nontermMapper.arr);
-    GrB_Matrix matrices[nonterm_count];
+//    GrB_Matrix matrices[nonterm_count];
+    GrB_Matrix *matrices = malloc(nonterm_count * sizeof(GrB_Matrix));
 
     for (uint64_t i = 0; i < nonterm_count; ++i) {
-        GrB_Info info =
-                GrB_Matrix_new(&matrices[i], GrB_BOOL, graph_size, graph_size);
-        if (info != GrB_SUCCESS) {
-            return 1;
-        }
+        check_info(GrB_Matrix_new(&matrices[i], IndexType, graph_size, graph_size));
     }
 
-    // Initialize matrices
-    // simple rules A -> a
     for (int i = 0; i < relations_count; i++) {
         const char *terminal = relations_names[i];
-
         MapperIndex terminal_id = ItemMapper_GetPlaceIndex((ItemMapper *) &grammar->tokenMapper, terminal);
 
         if (terminal_id != array_len(grammar->tokenMapper.arr)) {
             for (int j = 0; j < grammar->simple_rules_count; j++) {
                 const SimpleRule *simpleRule = &grammar->simple_rules[j];
                 if (simpleRule->r == terminal_id) {
-                    GrB_Matrix_dup(&matrices[simpleRule->l], relations[i]);
+                    IndexMatrix_Init(&matrices[simpleRule->l], &relations[i]);
                 }
             }
         }
     }
 
-    // Create monoid and semiring
-    GrB_Monoid monoid;
-    GrB_Semiring semiring;
-
-    GrB_Info info = GrB_Monoid_new_BOOL(&monoid, GrB_LOR, false);
-    assert(info == GrB_SUCCESS && "GraphBlas: failed to construct the monoid\n");
-
-    info = GrB_Semiring_new(&semiring, monoid, GrB_LAND);
-    assert(info == GrB_SUCCESS && "GraphBlas: failed to construct the semiring\n");
-
-    // Super-puper algorithm
     bool matrices_is_changed = true;
     while(matrices_is_changed) {
         response->iteration_count++;
-
         matrices_is_changed = false;
 
         for (int i = 0; i < grammar->complex_rules_count; ++i) {
@@ -62,41 +58,28 @@ int cfpq_cpu_1(const Grammar *grammar, CfpqResponse *response,
             GrB_Matrix m_old;
             GrB_Matrix_dup(&m_old, matrices[nonterm1]);
 
-            GrB_mxm(matrices[nonterm1], GrB_NULL, GrB_LOR, semiring,
+            GrB_mxm(matrices[nonterm1], GrB_NULL, IndexType_Add, IndexType_Semiring,
                     matrices[nonterm2], matrices[nonterm3], GrB_NULL);
 
             GrB_Index nvals_new, nvals_old;
             GrB_Matrix_nvals(&nvals_new, matrices[nonterm1]);
             GrB_Matrix_nvals(&nvals_old, m_old);
+
             if (nvals_new != nvals_old) {
                 matrices_is_changed = true;
             }
+//            IndexMatrix_Show(&matrices[0]);
 
             GrB_Matrix_free(&m_old);
+            GrB_free(&m_old);
         }
     }
 
-#ifdef DEBUG
-    // Write to redis output full result
-    {
-        GrB_Index nvals = graph_size * graph_size;
-        GrB_Index I[nvals];
-        GrB_Index J[nvals];
-        bool values[nvals];
+//    MapperIndex nonterm = ItemMapper_GetPlaceIndex((ItemMapper *) &grammar->nontermMapper, "s");
+//    printf("%s %d\n", grammar->nontermMapper.items[nonterm], nonterm);
+//    IndexMatrix_Show(&matrices[0]);
+//    IndexMatrices_GetPath(matrices, grammar, 0, 7, 0);
 
-        printf("graph size: %lu\n", graph_size);
-        for (int i = 0; i < grammar->nontermMapper.count; i++) {
-            printf("%s: ", ItemMapper_Map((ItemMapper *) &grammar->nontermMapper, i));
-            GrB_Matrix_extractTuples(I, J, values, &nvals, matrices[i]);
-            for (int j = 0; j < nvals; j++) {
-                printf("(%lu, %lu) ", I[j], J[j]);
-            }
-            printf("\n");
-        }
-    }
-#endif
-
-    // clean and write response
     CfpqResponse_Init(response);
     for (int i = 0; i < array_len(grammar->nontermMapper.arr); i++) {
         GrB_Index nvals;
@@ -106,10 +89,18 @@ int cfpq_cpu_1(const Grammar *grammar, CfpqResponse *response,
         nonterm = ItemMapper_Map((ItemMapper *) &grammar->nontermMapper, i);
         CfpqResponse_Append(response, nonterm, nvals);
 
-        GrB_Matrix_free(&matrices[i]) ;
+//        GrB_Matrix_free(&matrices[i]) ;
     }
-    GrB_Semiring_free(&semiring);
-    GrB_Monoid_free(&monoid);
+    GrB_Semiring_free(&IndexType_Semiring);
+    GrB_Monoid_free(&IndexType_Monoid);
 
-    return 0;
+    return matrices;
+
+
+//    Index index;
+//    Index_InitIdentity(&index);
+//    GrB_Matrix_extractElement((void *) &index, matrices[nonterm], 31, 31);
+//
+//    Index_Show(&index);
+//    IndexMatrices_GetPath(matrices, grammar, 0, 0, nonterm);
 }

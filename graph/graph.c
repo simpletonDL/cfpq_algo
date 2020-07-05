@@ -3,9 +3,10 @@
 
 #include "../utils/helpers.h"
 #include "../utils/item_mapper.h"
+#include "../utils/arr.h"
 
 void GraphRepr_Init(GraphRepr* g) {
-    ItemMapper_Init((ItemMapper*) &g->nodes);
+	g->max_node_id = 0;
     ItemMapper_Init((ItemMapper*) &g->edges);
 
     for (int i = 0; i < MAX_GRAPH_RELATION_TYPES; ++i) {
@@ -13,33 +14,39 @@ void GraphRepr_Init(GraphRepr* g) {
     }
 }
 
-void GraphRepr_InsertEdge(GraphRepr* g, const char *v, const char *edge, const char *to) {
-    MapperIndex v_id = ItemMapper_Insert((ItemMapper*) &g->nodes, v);
-    MapperIndex to_id = ItemMapper_Insert((ItemMapper*) &g->nodes, to);
+void GraphRepr_InsertEdge(GraphRepr* g, int v_id, const char *edge, int to_id) {
     MapperIndex edge_id = ItemMapper_Insert((ItemMapper*) &g->edges, edge);
 
     assert(v_id != MAX_GRAPH_SIZE && to_id != MAX_GRAPH_SIZE && edge_id != MAX_GRAPH_RELATION_TYPES);
 
     GrB_Matrix_setElement_BOOL(g->relations[edge_id], true, v_id, to_id);
+    g->max_node_id = g->max_node_id < v_id ? v_id : g->max_node_id;
+    g->max_node_id = g->max_node_id < to_id ? to_id : g->max_node_id;
 }
 
 void GraphRepr_Load(GraphRepr *g, FILE *f) {
     GraphRepr_Init(g);
 
-    char *line_buf;
-    size_t buf_size = 0;
+	char v[MAX_ITEM_NAME_LEN], edge[MAX_ITEM_NAME_LEN], to[MAX_ITEM_NAME_LEN];
+	char *line_buf;
+	size_t buf_size = 0;
 
-    ItemMapper nodes, edges;
-    ItemMapper_Init(&nodes);
-    ItemMapper_Init(&edges);
-
+    int i = 0;
     while (getline(&line_buf, &buf_size, f) != -1) {
+        i++;
+        if (i % 10000 == 0) {
+            printf("Load %d\n", i);
+            fflush(stdout);
+        }
         str_strip(line_buf);
 
-        char v[MAX_ITEM_NAME_LEN], edge[MAX_ITEM_NAME_LEN], to[MAX_ITEM_NAME_LEN];
         int nitems = sscanf(line_buf, "%s %s %s", v, edge, to);
+
+        char *end;
+        int v_id = strtol(v, &end, 10);
+        int to_id = strtol(to, &end, 10);
         assert(nitems == 3);
 
-        GraphRepr_InsertEdge(g, v, edge, to);
+        GraphRepr_InsertEdge(g, v_id, edge, to_id);
     }
 }

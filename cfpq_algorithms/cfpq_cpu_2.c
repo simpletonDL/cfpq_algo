@@ -1,4 +1,5 @@
 #include "algorithms.h"
+#include "../utils/arr.h"
 
 #define BIT_EXIST(x, pos) (((x) >> (pos)) & 1ul)
 #define BIT_SET(x, pos) ((x) |= (1ul << (pos)))
@@ -101,7 +102,7 @@ int cfpq_cpu_2(const Grammar *grammar, CfpqResponse *response,
         strcpy(terminal, relations_names[i]);
 
         MapperIndex terminal_id = ItemMapper_GetPlaceIndex((ItemMapper *) &grammar->tokenMapper, terminal);
-        if (terminal_id != grammar->tokenMapper.count) {
+        if (terminal_id != array_len(grammar->tokenMapper.arr)) {
             for (int j = 0; j < grammar->simple_rules_count; j++) {
                 const SimpleRule *simple_rule = &grammar->simple_rules[j];
                 if (simple_rule->r == terminal_id) {
@@ -159,7 +160,7 @@ int cfpq_cpu_2(const Grammar *grammar, CfpqResponse *response,
 
     GxB_SelectOp NontermSelector;
     GxB_SelectOp_new(&NontermSelector, right_shift, GrB_UINT8, NULL);
-    for (int i = 0; i < grammar->nontermMapper.count; ++i) {
+    for (int i = 0; i < array_len(grammar->nontermMapper.arr); ++i) {
         right_shift_count = i;
 
         GrB_Matrix nonterm_matrix;
@@ -169,7 +170,7 @@ int cfpq_cpu_2(const Grammar *grammar, CfpqResponse *response,
         GrB_Index nonterm_count;
         GrB_Matrix_nvals(&nonterm_count, nonterm_matrix);
 
-        CfpqResponse_Append(response, grammar->nontermMapper.items[i], nonterm_count);
+        CfpqResponse_Append(response, grammar->nontermMapper.arr[i], nonterm_count);
     }
     return 0;
 }
